@@ -138,10 +138,12 @@ export function buildGUI(opts) {
   gui.domElement.querySelector(':scope > .lil-title')?.remove(); // brand replaces the default title bar
   mountPanelFX(gui.domElement); // living-sap-veins GPU background
 
+  const incompleteSpecies = new Set(['apple', 'cherry']);
+  const speciesLabel = (key) => `${speciesMap[key].name}${incompleteSpecies.has(key) ? ' (incomplete)' : ''}`;
   const speciesNames = {};
-  for (const key of Object.keys(speciesMap)) speciesNames[speciesMap[key].name] = key;
+  for (const key of Object.keys(speciesMap)) speciesNames[speciesLabel(key)] = key;
 
-  const proxy = { species: speciesMap[state.speciesKey].name, ...state.controls };
+  const proxy = { species: state.speciesKey, ...state.controls };
 
   // Mobile Target availability + LOD-slider semantics live here so they can react
   // to species changes. Desert (rosette) species have no branch cards, so the
@@ -174,7 +176,7 @@ export function buildGUI(opts) {
     state.speciesKey = key;
     onChange(true); // species changed → main.js resets state.controls (sync)
     Object.assign(proxy, state.controls);
-    proxy.species = speciesMap[key].name;
+    proxy.species = key;
     buildParamControls(); // rebuild sliders for this species' branching type
     buildAdvancedControls();
     buildLeafBarkControls();
@@ -376,7 +378,7 @@ export function buildGUI(opts) {
     state.speciesKey = key;
     // Merge over fresh defaults so a preset from an older version still fills gaps.
     state.controls = { ...controlsFromSpecies(speciesMap[key]), ...(preset.controls || {}) };
-    proxy.species = speciesMap[key].name;
+    proxy.species = key;
     Object.assign(proxy, state.controls);
     buildParamControls();
     buildAdvancedControls();
@@ -413,7 +415,7 @@ export function buildGUI(opts) {
   // Refresh proxy fields from state (e.g. after a species change) so the panel
   // reflects the new defaults.
   function syncFromState() {
-    proxy.species = speciesMap[state.speciesKey].name;
+    proxy.species = state.speciesKey;
     Object.assign(proxy, state.controls);
     gui.controllersRecursive().forEach((ctrl) => ctrl.updateDisplay());
   }
